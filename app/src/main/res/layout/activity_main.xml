@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activities.MainActivity">
+
+
+    <LinearLayout
+        android:id="@+id/contactBar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_40sdp"
+        android:orientation="horizontal"
+        android:background="@drawable/contact_header_bg"
+        >
+
+        <TextView
+            android:layout_marginLeft="@dimen/_10sdp"
+            android:id="@+id/tv_contactHeading"
+            android:layout_width="@dimen/_250sdp"
+            android:layout_height="match_parent"
+            android:text="Contacts"
+            android:gravity="center_vertical"
+            android:textSize="@dimen/_15sdp"
+            android:textColor="@color/white"
+            android:paddingLeft="@dimen/_10sdp"
+            />
+
+        <ImageView
+            android:id="@+id/iv_contactAdd"
+            android:layout_width="@dimen/_55sdp"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_baseline_person_add_alt_1_24"
+            android:padding="@dimen/_12sdp"
+            />
+
+    </LinearLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/contactBar"
+        android:id="@+id/swipeRefresh"
+        >
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_contacts"
+        android:layout_below="@id/contactBar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
+
+
+</RelativeLayout>
