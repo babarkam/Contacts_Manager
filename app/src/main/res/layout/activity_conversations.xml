@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activities.ConversationsActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_40sdp"
+        android:orientation="horizontal"
+        android:background="@drawable/contact_header_bg"
+        android:id="@+id/conversationHeader"
+        >
+
+        <ImageView
+            android:id="@+id/iv_conversationBack"
+            android:layout_width="@dimen/_55sdp"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_baseline_arrow_back_24"
+            android:padding="@dimen/_10sdp"
+            />
+
+        <TextView
+            android:paddingRight="@dimen/_40sdp"
+            android:id="@+id/tv_conversationHeading"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Conversations"
+            android:gravity="center"
+            android:textSize="@dimen/_18sdp"
+            android:textColor="@color/white"
+            android:paddingLeft="@dimen/_10sdp"
+            />
+
+    </LinearLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/conversationHeader"
+        android:id="@+id/conversationSwipeRefresh"
+        >
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_conversations"
+            android:layout_below="@id/contactBar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</RelativeLayout>

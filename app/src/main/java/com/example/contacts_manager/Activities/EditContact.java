@@ -16,6 +16,7 @@ import com.example.contacts_manager.Models.AddressModel;
 import com.example.contacts_manager.Models.ContactsModel;
 import com.example.contacts_manager.Models.PhoneModel;
 import com.example.contacts_manager.R;
+import com.example.contacts_manager.Utils.SessionManager;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.database.DataSnapshot;
@@ -43,7 +44,7 @@ public class EditContact extends AppCompatActivity {
     DatabaseReference databaseReference;
     AddressModel address;
     PhoneModel phone;
-
+    SessionManager sessionManager;
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +69,7 @@ public class EditContact extends AppCompatActivity {
         addExtra = findViewById(R.id.iv_editAddExtra);
         addEmergency = findViewById(R.id.iv_editAddEmergency);
         confirm = findViewById(R.id.iv_editConfirm);
+        sessionManager = new SessionManager(this);
 
 
 
@@ -193,7 +195,7 @@ public class EditContact extends AppCompatActivity {
     }
 
     public void updateDataDB() {
-        databaseReference = FirebaseDatabase.getInstance().getReference("ContactDetails").child(contactsModel.get(0).getContactID());
+        databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(sessionManager.getuserId()).child("ContactDetails").child(contactsModel.get(0).getContactID());
 
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -201,7 +203,7 @@ public class EditContact extends AppCompatActivity {
 
 
                 Map<String, Object> edit = new HashMap<>();
-                address = new AddressModel(houseNumber.getText().toString(), street.getText().toString(), city.getText().toString(), country.getText().toString(), zipCode.getText().toString());
+                address = new AddressModel(houseNumber.getText().toString(), street.getText().toString(), city.getText().toString(), country.getText().toString(), zipCode.getText().toString(), "");
                 phone = new PhoneModel(mobile.getText().toString(), work.getText().toString(), extra.getText().toString(), emergency.getText().toString());
                 edit.put("ContactID", contactsModel.get(0).getContactID());
                 edit.put("Name", name.getText().toString());

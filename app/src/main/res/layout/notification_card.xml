@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/_60sdp"
+    android:background="@color/quantum_grey400">
+
+
+
+    <RelativeLayout
+        android:id="@+id/rel_notification"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginRight="@dimen/_10sdp"
+        android:layout_marginLeft="@dimen/_10sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        >
+
+    <RelativeLayout
+        android:id="@+id/rel_notification2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+
+
+
+    <TextView
+        android:id="@+id/tv_notificationName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="@dimen/_50sdp"
+        android:text="Notification from Babar"
+        android:drawableLeft="@drawable/ic_baseline_notifications_24"
+        android:textColor="@color/black"
+        />
+
+        <TextView
+            android:id="@+id/tv_notificationTime"
+            android:layout_width="@dimen/_50sdp"
+            android:layout_height="wrap_content"
+            android:text="10:34:35"
+            android:layout_alignParentRight="true"
+            />
+
+
+    </RelativeLayout>
+
+
+        <TextView
+            android:layout_below="@id/rel_notification2"
+            android:id="@+id/tv_notificationBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="@color/black"
+            android:text="I was wondering if you wanted to hang out this weekend. Ive been budy over the weekdays but i am free now to hang out and "
+            />
+
+    </RelativeLayout>
+
+</RelativeLayout>

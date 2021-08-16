@@ -1,8 +1,10 @@
 package com.example.contacts_manager.Activities;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -11,8 +13,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import com.example.contacts_manager.Adapters.ContactsAdapter;
@@ -20,10 +26,12 @@ import com.example.contacts_manager.Models.AddressModel;
 import com.example.contacts_manager.Models.ContactsModel;
 import com.example.contacts_manager.Models.PhoneModel;
 import com.example.contacts_manager.R;
+import com.example.contacts_manager.Utils.SessionManager;
 import com.example.easywaylocation.EasyWayLocation;
 import com.example.easywaylocation.GetLocationDetail;
 import com.example.easywaylocation.Listener;
 import com.example.easywaylocation.LocationData;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -33,16 +41,20 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements Listener, LocationData.AddressCallBack{
+public class MainActivity extends AppCompatActivity implements Listener, LocationData.AddressCallBack, NavigationView.OnNavigationItemSelectedListener{
 
     List<ContactsModel> contactsModelList;
     RecyclerView contactsRecycler;
     ContactsAdapter contactsAdapter;
     AddressModel addressModel;
     PhoneModel phoneModel;
-    ImageView contactAdd;
+    ImageView contactAdd, menu, drawer;
     DatabaseReference databaseReference;
     AlertDialog.Builder builder;
+    SessionManager sessionManager;
+    DrawerLayout drawerLayout;
+    NavigationView navigationView;
+    ActionBarDrawerToggle toggle;
 
 
     SwipeRefreshLayout swipeRefresh;
@@ -58,10 +70,59 @@ public class MainActivity extends AppCompatActivity implements Listener, Locatio
         contactAdd = findViewById(R.id.iv_contactAdd);
         builder = new AlertDialog.Builder(this);
         swipeRefresh = findViewById(R.id.swipeRefresh);
+        sessionManager = new SessionManager(this);
+        menu = findViewById(R.id.iv_contactMenu);
+        drawer = findViewById(R.id.iv_contactDrawer);
+        drawerLayout = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.navView);
+        toggle = new ActionBarDrawerToggle(MainActivity.this, drawerLayout, R.string.close, R.string.open);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+        navigationView.setNavigationItemSelectedListener( MainActivity.this);
+
 
         easyWayLocation = new EasyWayLocation(MainActivity.this, false,false,MainActivity.this);
         easyWayLocation.startLocation();
         getLocationDetail = new GetLocationDetail(this, this);
+
+
+        drawer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!drawerLayout.isDrawerOpen(Gravity.LEFT)) {
+                    drawerLayout.openDrawer(Gravity.LEFT);
+                }
+            }
+        });
+
+        menu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PopupMenu popupMenu = new PopupMenu(MainActivity.this, menu);
+
+                popupMenu.getMenuInflater().inflate(R.menu.option_menu,popupMenu.getMenu());
+
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch(item.getItemId()) {
+                            case R.id.menuItem1:
+                                sessionManager.logOut();
+                                Intent logOut = new Intent(MainActivity.this, LoginActivity.class);
+                                startActivity(logOut);
+                                finish();
+                                break;
+                        }
+
+                        return true;
+                    }
+                });
+
+                popupMenu.show();
+
+
+            }
+        });
 
 
 
@@ -79,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements Listener, Locatio
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, AddContact.class);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -90,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements Listener, Locatio
 
     public void getDataFromDB() {
         contactsModelList.clear();
-        databaseReference = FirebaseDatabase.getInstance().getReference().child("ContactDetails");
+        databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(sessionManager.getuserId()).child("ContactDetails");
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -102,6 +164,7 @@ public class MainActivity extends AppCompatActivity implements Listener, Locatio
                         addressModel.setCity(dataSnapshot.child("Address").child("city").getValue(String.class));
                         addressModel.setCountry(dataSnapshot.child("Address").child("country").getValue(String.class));
                         addressModel.setZipCode(dataSnapshot.child("Address").child("zipCode").getValue(String.class));
+                        addressModel.setHousePin(dataSnapshot.child("Address").child("housePin").getValue(String.class));
 
                         phoneModel = new PhoneModel();
                         phoneModel.setMobile(dataSnapshot.child("PhoneNumbers").child("mobile").getValue(String.class));
@@ -113,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements Listener, Locatio
                                 dataSnapshot.child("Picture").getValue(String.class), dataSnapshot.child("Gender").getValue(String.class), dataSnapshot.child("Pin").getValue(String.class),
                                 addressModel, phoneModel, dataSnapshot.child("PinAddress").getValue(String.class)));
                     }
-                    contactsAdapter = new ContactsAdapter( contactsModelList, MainActivity.this, latLong);
+                    contactsAdapter = new ContactsAdapter( contactsModelList, MainActivity.this);
                     contactsRecycler.setLayoutManager(new LinearLayoutManager(MainActivity.this));
                     contactsRecycler.setAdapter(contactsAdapter);
                 }
@@ -161,11 +224,15 @@ public class MainActivity extends AppCompatActivity implements Listener, Locatio
     @Override
     public void onBackPressed() {
 
-        builder.setMessage("Do you want to close this application?").setCancelable(false)
+        builder.setMessage("Do you want to log out").setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        MainActivity.super.onBackPressed();
+                        sessionManager.logOut();
+                        Intent goBack = new Intent(MainActivity.this, LoginActivity.class);
+                        startActivity(goBack);
+                        finish();
+
                     }
                 }).setNegativeButton("No", new DialogInterface.OnClickListener() {
             @Override
@@ -174,8 +241,30 @@ public class MainActivity extends AppCompatActivity implements Listener, Locatio
             }
         });
         AlertDialog alert = builder.create();
-        alert.setTitle("Closing App");
+        alert.setTitle("Logging Out");
         alert.show();
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch(item.getItemId()) {
+
+            case R.id.menu_conversations:
+                Intent convIntent = new Intent(MainActivity.this, ConversationsActivity.class);
+                startActivity(convIntent);
+                finish();
+                break;
+
+            case R.id.menu_logout:
+                sessionManager.logOut();
+                Intent log = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(log);
+                finish();
+        }
+
+
+        drawerLayout.closeDrawers();
+        return true;
     }
 
 /*    public void fetchTimelineAsync(int page) {

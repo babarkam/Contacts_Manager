@@ -6,14 +6,15 @@ import android.os.Parcelable;
 import java.io.Serializable;
 
 public class AddressModel implements Parcelable, Serializable {
-    String houseNumber, street, city, country, zipCode;
+    String houseNumber, street, city, country, zipCode, housePin;
 
-    public AddressModel(String houseNumber, String street, String city, String country, String zipCode) {
+    public AddressModel(String houseNumber, String street, String city, String country, String zipCode, String housePin) {
         this.houseNumber = houseNumber;
         this.street = street;
         this.city = city;
         this.country = country;
         this.zipCode = zipCode;
+        this.housePin = housePin;
     }
 
     public AddressModel() {
@@ -25,6 +26,7 @@ public class AddressModel implements Parcelable, Serializable {
         city = in.readString();
         country = in.readString();
         zipCode = in.readString();
+        housePin = in.readString();
     }
 
     public static final Creator<AddressModel> CREATOR = new Creator<AddressModel>() {
@@ -79,6 +81,14 @@ public class AddressModel implements Parcelable, Serializable {
         this.zipCode = zipCode;
     }
 
+    public String getHousePin() {
+        return housePin;
+    }
+
+    public void setHousePin(String housePin) {
+        this.housePin = housePin;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -91,5 +101,6 @@ public class AddressModel implements Parcelable, Serializable {
         dest.writeString(city);
         dest.writeString(country);
         dest.writeString(zipCode);
+        dest.writeString(housePin);
     }
 }

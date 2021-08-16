@@ -31,15 +31,17 @@
             android:paddingLeft="@dimen/_10sdp"
             />
 
-        <ImageView
-            android:id="@+id/iv_viewEdit"
-            android:layout_width="@dimen/_40sdp"
-            android:layout_height="match_parent"
-            android:src="@drawable/ic_baseline_edit_24"
-            android:padding="@dimen/_10sdp"
-            android:layout_marginRight="@dimen/_10sdp"
-            />
+
     </LinearLayout>
+    <ImageView
+        android:id="@+id/iv_viewEdit"
+        android:layout_width="@dimen/_40sdp"
+        android:layout_height="@dimen/_40sdp"
+        android:src="@drawable/ic_baseline_edit_24"
+        android:padding="@dimen/_10sdp"
+        android:layout_marginRight="@dimen/_10sdp"
+        android:layout_alignParentRight="true"
+        />
 
 
     <LinearLayout
@@ -150,7 +152,7 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:inputType="text"
+                android:inputType="phone"
                 android:maxLength="35"
                 android:singleLine="true"
                 android:id="@+id/et_viewPhoneMobile"
@@ -173,7 +175,7 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:inputType="text"
+                android:inputType="phone"
                 android:maxLength="35"
                 android:singleLine="true"
                 android:id="@+id/et_viewPhoneWork"
@@ -196,7 +198,7 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:inputType="text"
+                android:inputType="phone"
                 android:maxLength="35"
                 android:singleLine="true"
                 android:id="@+id/et_viewPhoneExtra"
@@ -219,7 +221,7 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:inputType="text"
+                android:inputType="phone"
                 android:maxLength="35"
                 android:singleLine="true"
                 android:id="@+id/et_viewPhoneEmergency"

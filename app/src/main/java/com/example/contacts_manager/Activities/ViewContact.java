@@ -28,6 +28,7 @@ import com.example.contacts_manager.Models.AddressModel;
 import com.example.contacts_manager.Models.ContactsModel;
 import com.example.contacts_manager.Models.PhoneModel;
 import com.example.contacts_manager.R;
+import com.example.contacts_manager.Utils.SessionManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -73,6 +74,7 @@ public class ViewContact extends AppCompatActivity implements OnMapReadyCallback
     Uri profilePic;
     String imageUrl;
     DatabaseReference databaseReference;
+    SessionManager sessionManager;
 
 
     private GoogleMap mMap;
@@ -103,6 +105,7 @@ public class ViewContact extends AppCompatActivity implements OnMapReadyCallback
         lWork = findViewById(R.id.textFieldWork);
         lExtra = findViewById(R.id.textFieldExtra);
         lEmergency = findViewById(R.id.textFieldEmergency);
+        sessionManager = new SessionManager(this);
 
         contactsModel = new ArrayList<>();
         contactsModel = (List<ContactsModel>) getIntent().getSerializableExtra("contact");
@@ -222,14 +225,15 @@ public class ViewContact extends AppCompatActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        String[] latLong = contactsModel.get(0).getPinLocation().split(",");
-        double lat = Double.parseDouble(latLong[0]);
-        double lon = Double.parseDouble(latLong[1]);
-        LatLng sydney = new LatLng(lat, lon);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Location"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 15.0f));
+        if (!contactsModel.get(0).getPinLocation().isEmpty()) {
+            String[] latLong = contactsModel.get(0).getPinLocation().split(",");
+            double lat = Double.parseDouble(latLong[0]);
+            double lon = Double.parseDouble(latLong[1]);
+            LatLng sydney = new LatLng(lat, lon);
+            mMap.addMarker(new MarkerOptions().position(sydney).title("Location"));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lon), 15.0f));
+        }
     }
 
     public void getPermission() {
@@ -343,7 +347,7 @@ public class ViewContact extends AppCompatActivity implements OnMapReadyCallback
     }
 
     public void updatePic() {
-        databaseReference = FirebaseDatabase.getInstance().getReference().child("ContactDetails").child(contactsModel.get(0).getContactID()).child("Picture");
+        databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(sessionManager.getuserId()).child("ContactDetails").child(contactsModel.get(0).getContactID()).child("Picture");
 
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

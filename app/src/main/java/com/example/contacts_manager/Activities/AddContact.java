@@ -13,14 +13,17 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -35,13 +38,24 @@ import android.widget.Toast;
 import com.example.contacts_manager.Models.AddressModel;
 import com.example.contacts_manager.Models.PhoneModel;
 import com.example.contacts_manager.R;
+import com.example.contacts_manager.Utils.MapsActivity;
+import com.example.contacts_manager.Utils.SessionManager;
 import com.example.easywaylocation.EasyWayLocation;
 import com.example.easywaylocation.GetLocationDetail;
 import com.example.easywaylocation.Listener;
 import com.example.easywaylocation.LocationData;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.AutocompleteActivity;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -56,22 +70,24 @@ import com.gun0912.tedpermission.TedPermission;
 
 import java.io.IOException;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-public class AddContact extends AppCompatActivity implements AdapterView.OnItemSelectedListener, Listener, LocationData.AddressCallBack  {
+public class AddContact extends AppCompatActivity implements AdapterView.OnItemSelectedListener, Listener, LocationData.AddressCallBack {
 
 
     String[] gender = {"Select gender", "Male", "Female", "Other"};
     Spinner genderSpinner;
     Button save;
     Boolean genderSelected = true;
-    EditText name,house, street, city, country, zip;
-    ImageView back;
-    TextInputEditText mobilePhone,  workPhone, extraPhone, emergencyPhone, contactProfile;
+    EditText name, house, street, city, country, zip;
+    ImageView back, location;
+    TextInputEditText mobilePhone, workPhone, extraPhone, emergencyPhone, contactProfile, locationText;
     DatabaseReference databaseReference;
     AddressModel addressModel;
     PhoneModel phoneModel;
@@ -82,6 +98,7 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
     Boolean emergency = false;
     ImageView imageChooser;
     ActivityResultLauncher<Intent> someActivityResultLauncher;
+    ActivityResultLauncher<Intent> addressResultLauncher;
     Uri profileImage;
     FirebaseStorage storage;
     StorageReference storageReference;
@@ -89,13 +106,17 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
     String pinAddress = "";
     String latLong = "";
     GetLocationDetail getLocationDetail;
-
+    SessionManager sessionManager;
+    List<Place.Field> fields;
+    int AUTOCOMPLETE_REQUEST_CODE_DEST = 12;
     EasyWayLocation easyWayLocation;
+    TextInputLayout addFieldLocation;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_contact);
 
+        addFieldLocation = findViewById(R.id.addFieldLocation);
         save = findViewById(R.id.btn_contactSave);
         name = findViewById(R.id.et_contactName);
         mobilePhone = findViewById(R.id.et_contactPhoneMobile);
@@ -118,12 +139,37 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
         emergencyPhone = findViewById(R.id.et_contactPhoneEmergency);
         imageChooser = findViewById(R.id.iv_contactProfileChooser);
         contactProfile = findViewById(R.id.et_contactProfile);
-
+        sessionManager = new SessionManager(this);
+        location = findViewById(R.id.iv_contactLocationChooser);
+        locationText = findViewById(R.id.et_contactLocation);
         contactProfile.setEnabled(false);
 
-        easyWayLocation = new EasyWayLocation(AddContact.this, false,false,AddContact.this);
+
+        easyWayLocation = new EasyWayLocation(AddContact.this, false, false, AddContact.this);
         easyWayLocation.startLocation();
         getLocationDetail = new GetLocationDetail(this, this);
+
+
+
+
+
+//        location.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                selfPermissions();
+//            }
+//        });
+        location.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent mapIntent = new Intent(AddContact.this, MapsActivity.class);
+                mapIntent.putExtra("latLong", latLong);
+
+                addressResultLauncher.launch(mapIntent);
+
+
+            }
+        });
 
         someActivityResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -141,6 +187,20 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
+
+                        }
+                    }
+                });
+        addressResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if (result.getResultCode() == Activity.RESULT_OK) {
+                            // There are no request codes
+                            Intent data = result.getData();
+                            locationText.setText(data.getStringExtra("address"));
+
                         }
                     }
                 });
@@ -151,7 +211,6 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
                 getPermission();
             }
         });
-
 
 
         addWork.setOnClickListener(new View.OnClickListener() {
@@ -235,18 +294,19 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
             }
         });
 
-        ArrayAdapter gg = new ArrayAdapter(this, android.R.layout.simple_spinner_item,gender);
+        ArrayAdapter gg = new ArrayAdapter(this, android.R.layout.simple_spinner_item, gender);
         gg.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         genderSpinner.setAdapter(gg);
     }
+
+
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
         if (position == 0) {
             genderSelected = false;
-        }
-        else {
+        } else {
             genderSelected = true;
         }
     }
@@ -293,37 +353,37 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
     }
 
     public void writeDataToDB() {
-        databaseReference = FirebaseDatabase.getInstance().getReference("ContactDetails");
+        databaseReference = FirebaseDatabase.getInstance().getReference("Users").child(sessionManager.getuserId()).child("ContactDetails");
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                    Map<String, Object> contacts = new HashMap<>();
-                    String key = databaseReference.push().getKey();
-                    databaseReference.child(key).setValue(contacts);
-                    addressModel = new AddressModel(house.getText().toString(), street.getText().toString(), city.getText().toString(),
-                            country.getText().toString(), zip.getText().toString());
-                    phoneModel = new PhoneModel(mobilePhone.getText().toString(), workPhone.getText().toString(), extraPhone.getText().toString(), emergencyPhone.getText().toString());
-                    //databaseReference.child(snapshot.getKey()).setValue(contacts);
-                    contacts.put("ContactID", key);
-                    contacts.put("Name", name.getText().toString());
-                    contacts.put("Picture", imageUrl);
-                    contacts.put("Gender", genderSpinner.getSelectedItem().toString());
-                    contacts.put("Pin", latLong);
-                    contacts.put("Address", addressModel);
-                    contacts.put("PhoneNumbers", phoneModel);
-                    contacts.put("PinAddress", pinAddress);
-                  //  databaseReference.push().setValue(contacts);
-                    databaseReference.child(key).setValue(contacts);
+                Map<String, Object> contacts = new HashMap<>();
+                String key = databaseReference.push().getKey();
+                databaseReference.child(key).setValue(contacts);
+                addressModel = new AddressModel(house.getText().toString(), street.getText().toString(), city.getText().toString(),
+                        country.getText().toString(), zip.getText().toString(), locationText.getText().toString());
+                phoneModel = new PhoneModel(mobilePhone.getText().toString(), workPhone.getText().toString(), extraPhone.getText().toString(), emergencyPhone.getText().toString());
+                //databaseReference.child(snapshot.getKey()).setValue(contacts);
+                contacts.put("ContactID", key);
+                contacts.put("Name", name.getText().toString());
+                contacts.put("Picture", imageUrl);
+                contacts.put("Gender", genderSpinner.getSelectedItem().toString());
+                contacts.put("Pin", latLong);
+                contacts.put("Address", addressModel);
+                contacts.put("PhoneNumbers", phoneModel);
+                contacts.put("PinAddress", pinAddress);
+                //  databaseReference.push().setValue(contacts);
+                databaseReference.child(key).setValue(contacts);
 
                     /*contacts.put(snapshot.getKey(), new ContactsModel(name.getText().toString(), phone.getText().toString(),
                             "hehehe", genderSpinner.getSelectedItem().toString(), "hahaha", addressModel));
                     databaseReference.child(snapshot.getKey()).setValue(contacts);*/
 
-                }
+            }
 
             @Override
-            public void onCancelled(@NonNull  DatabaseError error) {
+            public void onCancelled(@NonNull DatabaseError error) {
 
             }
         });
@@ -346,8 +406,6 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
             }
 
 
-
-
         };
         TedPermission.with(this)
                 .setPermissionListener(permissionlistener)
@@ -356,8 +414,7 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
                 .check();
     }
 
-    private void uploadImage(Uri filePath)
-    {
+    private void uploadImage(Uri filePath) {
 
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
@@ -384,8 +441,7 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
 
                                 @Override
                                 public void onSuccess(
-                                        UploadTask.TaskSnapshot taskSnapshot)
-                                {
+                                        UploadTask.TaskSnapshot taskSnapshot) {
 
                                     // Image uploaded successfully
                                     // Dismiss dialog
@@ -407,8 +463,7 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
 
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
-                        public void onFailure(@NonNull Exception e)
-                        {
+                        public void onFailure(@NonNull Exception e) {
 
                             // Error, Image not uploaded
                             progressDialog.dismiss();
@@ -426,15 +481,14 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
                                 // percentage on the dialog box
                                 @Override
                                 public void onProgress(
-                                        UploadTask.TaskSnapshot taskSnapshot)
-                                {
+                                        UploadTask.TaskSnapshot taskSnapshot) {
                                     double progress
                                             = (100.0
                                             * taskSnapshot.getBytesTransferred()
                                             / taskSnapshot.getTotalByteCount());
                                     progressDialog.setMessage(
                                             "Uploaded "
-                                                    + (int)progress + "%");
+                                                    + (int) progress + "%");
                                 }
                             });
         }
@@ -460,6 +514,73 @@ public class AddContact extends AppCompatActivity implements AdapterView.OnItemS
     @Override
     public void locationData(LocationData locationData) {
         pinAddress = locationData.getFull_address();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent goBack = new Intent(AddContact.this, MainActivity.class);
+        startActivity(goBack);
+        finish();
+    }
+
+    public void selfPermissions() {
+        PermissionListener permissionListener = new PermissionListener() {
+            @Override
+            public void onPermissionGranted() {
+                // autolocation
+              Task task=new Task();
+              task.execute();
+            }
+
+            @Override
+            public void onPermissionDenied(List<String> deniedPermissions) {
+            }
+        };
+        TedPermission.with(AddContact.this).setPermissionListener(permissionListener).setPermissions(
+                Manifest.permission.INTERNET,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION).check();
+    }
+
+
+    public class Task extends AsyncTask<Void, Void, Void>
+    {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+                Places.initialize(getApplicationContext(), "AIzaSyCYd9DNtP8fAnic_H5XwgCef7dmqj_7vB0"/*"AIzaSyANmacyq2XdoogvvO0CYbfDru3yiGii0Aw"*/);
+
+
+
+
+            // we just need name,id and latlng of location, but iff we need phone,address,images etc then add in list below
+            fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS);
+            // Start the autocomplete intent.
+            Intent intent = new Autocomplete.IntentBuilder(
+                    AutocompleteActivityMode.OVERLAY, fields)
+                    .build(AddContact.this);
+
+            startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE_DEST);
+            return null;
+        }
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == AUTOCOMPLETE_REQUEST_CODE_DEST) {
+            if (resultCode == RESULT_OK) {
+                Place place = Autocomplete.getPlaceFromIntent(data);
+                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
+            } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
+                // TODO: Handle the error.
+                Status status = Autocomplete.getStatusFromIntent(data);
+                Log.i(TAG, status.getStatusMessage());
+            } else if (resultCode == RESULT_CANCELED) {
+                // The user canceled the operation.
+            }
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
 }

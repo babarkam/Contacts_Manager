@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:id="@+id/callOptionMobile" android:title="Mobile" android:icon="@drawable/ic_baseline_call_24" />
+<item android:id="@+id/callOptionWork" android:title="Work" android:icon="@drawable/ic_baseline_call_24" />
+<item android:id="@+id/callOptionExtra" android:title="Extra" android:icon="@drawable/ic_baseline_call_24" />
+<item android:id="@+id/callOptionEmergency" android:title="Emergency" android:icon="@drawable/ic_baseline_call_24" />
+</menu>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/_51sdp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardElevation="@dimen/_3sdp"
+    android:id="@+id/card_conversation"
+    app:cardCornerRadius="@dimen/_5sdp"
+    android:layout_margin="@dimen/_5sdp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+        <LinearLayout
+            android:id="@+id/linear_conversation"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_50sdp"
+            android:orientation="horizontal"
+            >
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="@dimen/_40sdp"
+                android:layout_height="@dimen/_40sdp"
+                android:layout_gravity="center"
+                app:cardCornerRadius="@dimen/_10sdp"
+                android:layout_marginLeft="@dimen/_5sdp"
+
+                >
+                <RelativeLayout
+                    android:id="@+id/rel_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/conversation_image"
+                    android:backgroundTint="@color/orange"
+                    >
+
+                    <TextView
+                        android:id="@+id/tv_conversationCircle"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="B"
+                        android:textColor="@color/white"
+                        android:gravity="center"
+                        android:layout_alignParentLeft="true"
+                        android:textSize="@dimen/_20sdp"
+                        />
+
+                </RelativeLayout>
+
+                <!--<ImageView
+                    android:id="@+id/iv_conversationImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_baseline_person_24"
+                    />-->
+            </androidx.cardview.widget.CardView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingLeft="@dimen/_10sdp"
+                >
+
+                <TextView
+                    android:id="@+id/tv_conversationName"
+                    android:paddingLeft="@dimen/_10sdp"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_30sdp"
+                    android:text="Babar"
+                    android:textSize="@dimen/_15sdp"
+                    android:textColor="@color/black"
+                    android:gravity="center_vertical"
+                    android:ellipsize="end"
+                    />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_20sdp"
+                    >
+
+                    <TextView
+                        android:id="@+id/tv_conversationLastMsg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:paddingLeft="@dimen/_10sdp"
+                        android:maxLines="1"
+                        android:text="Hi, how's it going? I really would like to meet you this weekedn"
+                        android:textColor="@color/orange"
+                        android:gravity="center_vertical"
+                        android:ellipsize="end"
+                        android:layout_toLeftOf="@+id/tv_conversationTime"
+                        />
+                    <TextView
+                        android:id="@+id/tv_conversationTime"
+                        android:layout_width="@dimen/_70sdp"
+                        android:layout_height="match_parent"
+                        android:text="10:34pm"
+                        android:textSize="@dimen/_9sdp"
+                        android:gravity="center"
+                        android:layout_alignParentRight="true"
+                        />
+
+
+
+                </RelativeLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>

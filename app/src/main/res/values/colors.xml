@@ -10,5 +10,6 @@
     <color name="yellow">#F1DA11</color>
     <color name="red">#F63E30</color>
     <color name="orange">#FB6333</color>
+    <color name="lorange">#F87349</color>
     <color name="lblue">#00BCD4</color>
 </resources>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    >
+
+
+    <RelativeLayout
+        android:layout_marginTop="@dimen/_3sdp"
+        android:id="@+id/rel_senderChat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/_100sdp"
+        android:layout_marginRight="@dimen/_3sdp"
+        android:background="@drawable/sender_bubble"
+        android:layout_alignParentRight="true"
+
+        >
+
+        <TextView
+        android:id="@+id/tv_senderChat"
+        android:layout_width="wrap_content"
+        android:maxWidth="@dimen/_220sdp"
+        android:maxHeight="@dimen/_100sdp"
+        android:layout_height="wrap_content"
+        android:paddingRight="@dimen/_8sdp"
+        android:paddingLeft="@dimen/_8sdp"
+        android:paddingTop="@dimen/_8sdp"
+        android:text="Hi, my name is Babar. I am making this chatting app at app in snap."
+        android:textColor="@color/white"
+        />
+        
+        <TextView
+            android:id="@+id/tv_senderTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tv_senderChat"
+            android:textColor="@color/white"
+            android:text="10:24pm"
+            android:gravity="right"
+            android:paddingRight="@dimen/_10sdp"
+            />
+
+
+
+
+    </RelativeLayout>
+
+
+</RelativeLayout>
